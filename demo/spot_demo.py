@@ -1,10 +1,10 @@
 import numpy as np
-from maple.cart import CART, cart_fit
+from maple.cart import CART
 from maple.control import cart_control
 import matplotlib.pyplot as plt
 from dboost_py.optim_scs import OptimScs
 from dboost_py.control import scs_control
-from dboost_py.spot import SPOT
+from dboost_py.spot import SPOTree, QSPOTree
 
 # --- Create problem data
 np.random.seed(1)
@@ -44,9 +44,22 @@ plt.plot(x[:, 0], cost_pred[:,0], 'o')
 plt.plot(x[:, 0], cost_pred[:,1], 'o')
 
 
-# --- SPOT model:
+# --- SPOTree model:
 oracle = OptimScs(A=A, b=b, cone=cone, P=P, control=scs_control())
-model = SPOT(oracle=oracle, control=control)
+model = SPOTree(oracle=oracle, control=control)
+model.fit(x=x,y=cost)
+cost_pred = model.predict(x=x)
+
+# --- plot
+plt.plot(x[:, 0], cost1, 'o')
+plt.plot(x[:, 0], cost2, 'o')
+plt.plot(x[:, 0], cost_pred[:,0], 'o')
+plt.plot(x[:, 0], cost_pred[:,1], 'o')
+
+
+# --- QSPOTree model:
+oracle = OptimScs(A=A, b=b, cone=cone, P=P, control=scs_control())
+model = QSPOTree(oracle=oracle, control=control)
 model.fit(x=x,y=cost)
 cost_pred = model.predict(x=x)
 
