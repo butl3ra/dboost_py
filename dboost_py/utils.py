@@ -32,7 +32,9 @@ def update_M_mat(M, P=None):
     if not P is None:
         n_z = P.shape[0]
         idx = np.arange(n_z)
-        M[idx, :][:, idx] = P
+        j = idx[0]
+        k = idx[-1] + 1
+        M[j:k, j:k] = P
 
     return M
 

@@ -55,9 +55,9 @@ class OptimScs:
 
     def grad(self, dl_dz):
         # --- call to main grad solver:
-        grads = grad_scs(dl_dz=dl_dz, cost=self.cost, A=self.A, b=self.b,
-                         M=self.M, z_star=self.z_star, y_star=self.y_star,
-                         s_star=self.s_star, cone=self.cone, info=self.info)
+        grads = grad_scs(dl_dz=dl_dz, cost=self.cost, A=self.A, M=self.M,
+                         z_star=self.z_star, y_star=self.y_star,
+                         s_star=self.s_star, info=self.info)
         return grads
 
 
@@ -82,7 +82,7 @@ def solve_scs(cost, A, b, P, cone, control=scs_control()):
 
     # --- main loop:
     for i in range(n_cost):
-        solver.update(b=None, c=cost[i, :])
+        solver.update(b=b[:, 0], c=cost[i, :])
         sol = solver.solve()
         z_star[i, :] = sol.get('x')
         y_star[i, :] = sol.get('y')
@@ -141,7 +141,8 @@ def get_cone_info(A, cone):
             u_idx_soc[i] = n_z + idx_soc[i]
 
         idx_y = np.concatenate((idx_y, np.concatenate(u_idx_ineq)))
-
+    # --- type control
+    idx_y = idx_y.astype('int')
     # --- return info:
     info = {"n_z": n_z,
             "n_con": n_con,
@@ -162,7 +163,7 @@ def get_cone_info(A, cone):
     return info
 
 
-def grad_scs(dl_dz, cost, A, b, M, z_star, y_star, s_star, cone, info):
+def grad_scs(dl_dz, cost, A, M, z_star, y_star, s_star, info):
     # --- prep:
     cost = prep_cost(cost)
     dl_dz = make_matrix(dl_dz)
@@ -191,8 +192,7 @@ def grad_scs(dl_dz, cost, A, b, M, z_star, y_star, s_star, cone, info):
     # --- main loop
     for i in range(n_grads):
         sol = grad_scs_core(dl_dz=dl_dz[i, :], z_star=z_star[i, :], y_star=y_star[i, :],
-                            s_star=s_star[i, :], u_star=u_star[i, :], v_star=v_star[i, :],
-                            M=M, I=I, info=info)
+                            u_star=u_star[i, :], v_star=v_star[i, :],M=M, I=I, info=info)
         dl_dc[i, :] = sol.get('dl_dc')
         dl_db[i, :] = sol.get('dl_db')
         dl_dA[i, :, :] = sol.get('dl_dA')
@@ -202,27 +202,35 @@ def grad_scs(dl_dz, cost, A, b, M, z_star, y_star, s_star, cone, info):
     return grads
 
 
-def grad_scs_core(dl_dz, z_star, y_star, s_star, u_star, v_star, M, I, info, eps=10 ** -6):
+def grad_scs_core(dl_dz, z_star, y_star, u_star, v_star, M, I, info, eps=10 ** -6):
     # --- init:
     w = u_star - v_star
 
     # --- Derivative of euclidean projection operator:
-    D = d_proj(w[info.get('idx_y'), :], info)
+    D = d_proj(w[info.get('idx_y')], info)
 
     # --- Core system of Equations:
     rhs = np.dot(D, -dl_dz)
     mat = np.dot(M, D) - D + I + eps * I
-    d = np.linalg.solve(mat.transpose, rhs)
+    d = np.linalg.solve(mat.T, rhs)
 
     # --- d:
-    dz = d[info.get('idx_z'), :]
-    dy = d[info.get('idx_y'), :]
+    dz = d[info.get('idx_z')]
+    dy = d[info.get('idx_y')]
+
+
 
     # --- gradients:
+    # --- vectors
     dl_dc = dz
-    dl_dP = 0.5 * (np.dot(dz, z_star.transpose()) + np.dot(z_star, dz.transpose()))
     dl_db = dy
-    dl_dA = np.dot(y_star, dz.transpose()) - np.dot(dy, z_star.transpose())
+    # --- matrices:
+    dz = make_matrix(dz)
+    dy = make_matrix(dy)
+    z_star = make_matrix(z_star)
+    y_star = make_matrix(y_star)
+    dl_dP = 0.5 * (np.dot(dz, z_star.T) + np.dot(z_star, dz.T))
+    dl_dA = np.dot(y_star, dz.T) - np.dot(dy, z_star.T)
 
     grads = {"dl_dc": dl_dc, "dl_db": dl_db, "dl_dA": dl_dA, "dl_dP": dl_dP}
 
@@ -237,13 +245,17 @@ def d_proj(y, info):
     if info.get('any_ineq'):
         idx = info.get('idx_ineq')
         idx_D = n_z + idx
-        D[idx_D, :][::, idx_D] = d_proj_nno(y[idx])
+        j=idx_D[0]
+        k=idx_D[-1]+1
+        D[j:k, j:k] = d_proj_nno(y[idx])
     if info.get('any_soc'):
         n_soc = len(info.get('u_idx_soc'))
         for i in range(n_soc):
             idx = info.get('idx_soc')[i]
             idx_D = n_z + idx
-            D[idx_D, :][:, idx_D] = d_proj_soc(y[idx])
+            j = idx_D[0]
+            k = idx_D[-1] + 1
+            D[j:k, j:k] = d_proj_soc(y[idx])
 
     return D
 

@@ -1,12 +1,11 @@
-from dboost_py.loss import loss_spot
 from maple.control import cart_control
 from maple.utils import col_means
 
 
-def spot_control(fit_type='regression', demean=False, max_depth=0, min_obs=0.10, step_size=0.05,
-                 loss_fn=loss_spot, y_hat_fn=col_means):
+def spot_control(fit_type='regression', demean=False, max_depth=0, min_obs=0.10,
+                 step_size=0.05, y_hat_fn=col_means):
     control = cart_control(fit_type=fit_type, demean=demean, max_depth=max_depth, min_obs=min_obs,
-                           step_size=step_size, loss_fn=loss_fn, y_hat_fn=y_hat_fn)
+                           step_size=step_size, loss_fn=None, y_hat_fn=y_hat_fn)
     return control
 
 
