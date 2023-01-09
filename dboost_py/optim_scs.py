@@ -137,10 +137,10 @@ def get_cone_info(A, cone):
         u_idx_soc = []
         for i in range(len(n_soc)):
             n_soc1 = n_soc[i]
-            idx_soc[i] = np.arange(n_soc1) + n_eq + n_ineq + i
-            u_idx_soc[i] = n_z + idx_soc[i]
+            idx_soc.append(np.arange(n_soc1) + n_eq + n_ineq + i)
+            u_idx_soc.append(n_z + idx_soc[i])
 
-        idx_y = np.concatenate((idx_y, np.concatenate(u_idx_ineq)))
+        idx_y = np.concatenate((idx_y, np.concatenate(u_idx_soc)))
     # --- type control
     idx_y = idx_y.astype('int')
     # --- return info:
@@ -280,7 +280,8 @@ def d_proj_soc(x, eps=10 ** -8):
     # --- outside cone:
     else:
         x2_mat = (x2 / x_norm)
-        xx = np.dot(x2_mat, x2_mat.transpose())
+        x2_mat = make_matrix(x2_mat)
+        xx = np.dot(x2_mat, x2_mat.T)
 
         d = np.identity(n_x - 1)
         Dx = np.zeros((n_x, n_x))
