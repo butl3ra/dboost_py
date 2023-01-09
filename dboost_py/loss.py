@@ -19,7 +19,7 @@ def loss_spo(y, y_hat, oracle):
     return loss
 
 
-def loss_dboost_spo(y, y_hat, oracle):
+def loss_dboost_spo(y, y_hat, oracle, do_grad_project):
     # --- type checking
     is_y_dict = isinstance(y, dict)
     is_y_hat_dict = isinstance(y_hat, dict)
@@ -28,7 +28,10 @@ def loss_dboost_spo(y, y_hat, oracle):
     elif not is_y_dict and is_y_hat_dict:
         raise Exception("y_hat is dict but y is not. Both must be dict or array.")
     elif is_y_dict and is_y_hat_dict:
-        loss = loss_sse(y=y, y_hat=y_hat)
+        if do_grad_project:
+            loss = loss_sse(y=y, y_hat=y_hat)
+        else:
+            loss = loss_cart_spo(y=y, y_hat=y_hat, oracle=oracle)
     else:
         loss = loss_spo_core(y=y, y_hat=y_hat, oracle=oracle)
 
@@ -83,7 +86,7 @@ def loss_qspo(y, y_hat, oracle):
     return loss
 
 
-def loss_dboost_qspo(y, y_hat, oracle):
+def loss_dboost_qspo(y, y_hat, oracle, do_grad_project):
     # --- type checking
     is_y_dict = isinstance(y, dict)
     is_y_hat_dict = isinstance(y_hat, dict)
@@ -92,7 +95,10 @@ def loss_dboost_qspo(y, y_hat, oracle):
     elif not is_y_dict and is_y_hat_dict:
         raise Exception("y_hat is dict but y is not. Both must be dict or array.")
     elif is_y_dict and is_y_hat_dict:
-        loss = loss_sse(y=y, y_hat=y_hat)
+        if do_grad_project:
+            loss = loss_sse(y=y, y_hat=y_hat)
+        else:
+            loss = loss_cart_qspo(y=y, y_hat=y_hat, oracle=oracle)
     else:
         loss = loss_qspo_core(y=y, y_hat=y_hat, oracle=oracle)
 
