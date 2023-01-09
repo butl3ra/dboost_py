@@ -6,7 +6,7 @@ from dboost_py.utils import make_matrix, prep_cost, init_M_mat, update_M_mat
 
 
 class OptimScs:
-    def __init__(self, A, b, cone, P=None, control=scs_control()):
+    def __init__(self, A, b, cone, P=None, P_eval = None, control=scs_control()):
 
         # --- prep A and b and P
         A = make_matrix(A)
@@ -19,6 +19,7 @@ class OptimScs:
         self.A = A
         self.b = b
         self.P = P
+        self.P_eval = P_eval
         self.cone = cone
         self.control = control
 

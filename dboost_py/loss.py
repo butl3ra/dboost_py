@@ -1,5 +1,5 @@
 import numpy as np
-from dboost_py.utils import quad_form
+from dboost_py.utils import quad_form, get_P_eval
 from maple.loss import loss_sse
 
 
@@ -68,8 +68,6 @@ def loss_spo_core(y, y_hat, oracle):
     return loss
 
 
-# --- does not yet support option for a P matrix that is different than oracle.P
-# --- get_P_eval; init with P_eval and get oracle.P_eval if it exists...
 def loss_qspo(y, y_hat, oracle):
     # --- type checking
     is_y_dict = isinstance(y, dict)
@@ -125,7 +123,8 @@ def loss_cart_qspo_core(y, y_hat, oracle):
     lin = np.dot(y, z)
 
     # --- quadratic component:
-    quad = quad_form(z=z, P=oracle.P)
+    P_eval = get_P_eval(oracle)
+    quad = quad_form(z=z, P=P_eval)#oracle.P
     quad = n_y * quad
 
     loss = sum(lin) + 0.5 * quad
@@ -136,7 +135,7 @@ def loss_cart_qspo_core(y, y_hat, oracle):
 def loss_qspo_core(y, y_hat, oracle):
     # --- prep:
     n_y = y.shape[0]
-    P = oracle.P
+    P = get_P_eval(oracle)#oracle.P
     # --- optimal decisions
     z = oracle.solve(cost=y_hat)
 
@@ -164,7 +163,7 @@ def grad_spo(y, y_hat, oracle):
 def grad_qspo(y, y_hat, oracle):
     # --- optimal
     z = oracle.solve(cost=y_hat)
-    P = oracle.P
+    P = get_P_eval(oracle)#oracle.P
     dl_dz = np.dot(z, P) + y
     grads = oracle.grad(dl_dz=dl_dz)
 

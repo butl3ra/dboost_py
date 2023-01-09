@@ -41,3 +41,11 @@ def update_M_mat(M, P=None):
 
 def quad_form(z, P):
     return np.dot(np.dot(z.transpose(), P), z)
+
+
+def get_P_eval(oracle):
+    P_eval = getattr(oracle, 'P_eval', None)
+    if P_eval is None:
+        P_eval = oracle.P
+
+    return P_eval
