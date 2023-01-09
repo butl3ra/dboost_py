@@ -15,6 +15,7 @@ class DboostSPO:
         self.oracle = oracle
         # --- control setup
         self.control = control
+        self.boost_iter = 0
         fit_type = control.get('fit_type', 'regression')
         y_hat_fn = control.get('y_hat_fn')
 
@@ -32,6 +33,7 @@ class DboostSPO:
         self.tree = None
 
     def fit(self, x, y):
+        self.boost_iter += self.boost_iter
         self.tree = cart_fit(x=x, y=y, model=self)
         return None
 
@@ -40,7 +42,8 @@ class DboostSPO:
         return y_pred
 
     def loss(self, y, y_hat):
-        loss_value = loss_dboost_spo(y=y, y_hat=y_hat, oracle=self.oracle)
+        do_grad_project = self.boost_iter > 1
+        loss_value = loss_dboost_spo(y=y, y_hat=y_hat, oracle=self.oracle, do_grad_project=do_grad_project)
         return loss_value
 
     def grad(self, y, y_hat):
@@ -57,6 +60,7 @@ class DboostQSPO:
         self.oracle = oracle
         # --- control setup
         self.control = control
+        self.boost_iter = 0
         fit_type = control.get('fit_type', 'regression')
         y_hat_fn = control.get('y_hat_fn')
 
@@ -74,6 +78,7 @@ class DboostQSPO:
         self.tree = None
 
     def fit(self, x, y):
+        self.boost_iter += self.boost_iter
         self.tree = cart_fit(x=x, y=y, model=self)
         return None
 
@@ -82,7 +87,8 @@ class DboostQSPO:
         return y_pred
 
     def loss(self, y, y_hat):
-        loss_value = loss_dboost_qspo(y=y, y_hat=y_hat, oracle=self.oracle)
+        do_grad_project = self.boost_iter > 1
+        loss_value = loss_dboost_qspo(y=y, y_hat=y_hat, oracle=self.oracle, do_grad_project=do_grad_project)
         return loss_value
 
     def grad(self, y, y_hat):
