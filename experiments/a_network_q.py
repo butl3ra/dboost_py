@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from maple.cart import RegTree
 from maple.grad_boost import GradBoost
 from maple.control import cart_control, grad_boost_control, random_forest_control
@@ -39,10 +40,13 @@ control_gb = grad_boost_control(num_trees=100, verbose=True, weight_tol=0.01,
 
 
 # --- model_names:
+column_names=['RegTree','SPOT','RandomForest',"SPOTForest",'GradBoost','Dboost','oracle']
 model_names = ['RegTree','SPOT','RandomForest',"SPOTForest",'GradBoost','Dboost']
 n_models = len(model_names)
 in_sample_cost = np.zeros((n_sims,n_models+1))
+in_sample_cost = pd.DataFrame(in_sample_cost, columns=column_names)
 out_of_sample_cost = np.zeros((n_sims,n_models+1))
+out_of_sample_cost = pd.DataFrame(in_sample_cost, columns=column_names)
 
 
 # --- main loop:
@@ -74,10 +78,9 @@ for i in range(n_sims):
     # --- cost star train:
     cost_star_train = loss_qspo(y=cost_train, y_hat=cost_train, oracle=oracle)
     cost_star_oos = loss_qspo(y=cost_oos, y_hat=cost_oos, oracle=oracle)
-    in_sample_cost[i,n_models] = cost_star_train
-    out_of_sample_cost[i, n_models] = cost_star_oos
+    in_sample_cost['oracle'][i] = cost_star_train
+    out_of_sample_cost['oracle'][i] = cost_star_oos
 
-    j = 0
     for nm in model_names:
         print(nm)
         oracle = OptimScs(A=A, b=b, cone=cone, P=P, control=scs_control())
@@ -107,13 +110,19 @@ for i in range(n_sims):
         result_train = loss_qspo(y=cost_train, y_hat=cost_hat_train, oracle=oracle)
         result_oos = loss_qspo(y=cost_oos, y_hat=cost_hat_oos, oracle=oracle)
 
-        in_sample_cost[i,j]=result_train
-        out_of_sample_cost[i,j]=result_oos
-        j = j+1
+        in_sample_cost[nm][i] = result_train
+        out_of_sample_cost[nm][i] = result_oos
 
 
-test = out_of_sample_cost[:,0:6]
-for i in range(test.shape[0]):
-    test[i,:]=(test[i,:] -out_of_sample_cost[i,6]) /abs(out_of_sample_cost[i,6])
+# --- plot the results:
+test = out_of_sample_cost[model_names]
+for i in model_names:
+    print(i)
+    test[i] = (test[i] - out_of_sample_cost['oracle']) /abs(out_of_sample_cost['oracle'])
 
-plt.boxplot(test)
+test=test.rename(columns={'RandomForest':'Random\nForest',"SPOTForest":"SPOT\nForest"})
+
+props = dict(boxes="#009E73", whiskers="Black", medians="Black", caps="Gray")
+#props = dict(boxes="DarkBlue", whiskers="DarkOrange", medians="Gold", caps="Gray")
+test.plot.box(showfliers=False, rot=0, color=props, patch_artist=True,
+              ylabel='Normalized Decision Regret')
