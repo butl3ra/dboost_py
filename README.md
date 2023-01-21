@@ -1,5 +1,5 @@
 # dboost_py
-dboost_py (decision boosting) is a Python package for performing gradient boosting to minimize downstream convex cone decision optimization programs.
+dboost_py (decision boosting) is a Python package for performing gradient boosting to minimize downstream decision regret for general convex cone decision optimization programs.
 
 For more information please see our publication:
 
