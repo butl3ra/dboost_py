@@ -21,7 +21,7 @@ All experiments are conducted on an Apple Mac Pro computer (2.6 GHz 6-Core Intel
 
 ### Experiments:
 Network Flow Problem       |  Noisy Quadratic Program   | Portfolio Optimization    
-:-------------------------:|:-------------------------:
+:-------------------------:|:-------------------------:|:-------------------------:
 ![network flow](/images/network_noise_0_5.png)  |  ![quadratic program](/images/qp_noise_0_5.png) |  ![quadratic program](/images/popt_noise_0_5.png)
 
 
