@@ -9,7 +9,7 @@ For more information please see our publication:
 
 
 ## Core Dependencies:
-To use dboost will need to install maple, [numpy](https://numpy.org), [pandas](https://pandas.pydata.org), [scs](https://www.cvxgrp.org/scs/) and [SciPy](https://scipy.org).
+To use dboost you will need to install maple, [numpy](https://numpy.org), [pandas](https://pandas.pydata.org), [scs](https://www.cvxgrp.org/scs/) and [SciPy](https://scipy.org).
 
 Please see requirements.txt for full build details.
 
