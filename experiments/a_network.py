@@ -153,19 +153,3 @@ out.set(xlabel='Tree Depth',ylabel='Normalized Decision Regret')
 sns.move_legend(out, "lower center",bbox_to_anchor=(.5, 1), ncol=n_models, title=None, frameon=False,
                 columnspacing=0.8)
 plt.show()
-
-
-
-
-
-# --- deprecated
-test = out_of_sample_cost[model_names]
-for i in model_names:
-    print(i)
-    test[i] = (test[i] - out_of_sample_cost['oracle']) /abs(out_of_sample_cost['oracle'])
-
-
-props = dict(boxes="#009E73", whiskers="Black", medians="Black", caps="Gray")
-#props = dict(boxes="DarkBlue", whiskers="DarkOrange", medians="Gold", caps="Gray")
-test.plot.box(showfliers=False, rot=0, color=props, patch_artist=True,
-              ylabel='Normalized Decision Regret')
